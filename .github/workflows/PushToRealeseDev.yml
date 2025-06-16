@@ -31,7 +31,7 @@ jobs:
           git merge origin/main --no-ff -m "Automated merge from main to release-dev"
           git push origin release-dev
           
-      - name: Post welcome comment
+      - name: Automated merge
         run: gh pr comment "$PR_URL" --body "Automated merge from main to release-dev, branch are sync correctly."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
