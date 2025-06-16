@@ -1,19 +1,20 @@
+  # pull_request:
+  #   types:
+  #     - closed  # trigger solo quando la PR viene chiusa
+  #   branches:
+  #     - main    # solo se la PR è verso il branch `main`
 name: Auto Merge main -> release-dev
 
 on:
-  pull_request:
-    types:
-      - closed  # trigger solo quando la PR viene chiusa
+  push:
     branches:
-      - main    # solo se la PR è verso il branch `main`
+      - main
 
 jobs:
   merge_to_release_dev:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout main branch
@@ -32,11 +33,7 @@ jobs:
           git fetch origin release-dev
           git checkout release-dev
           git merge origin/main --no-ff -m "🤖 Auto-merge from main to release-dev"
-          git push origin release-dev
+          git push origin HEAD:release-dev
 
-      - name: Comment on original PR
-        run: |
-          gh pr comment "$PR_URL" --body "✅ Automatic merge from \`main\` to \`release-dev\` completed successfully."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
+      - name: Result
+        run: echo "✅ Automatic merge from \`main\` to \`release-dev\` completed successfully."

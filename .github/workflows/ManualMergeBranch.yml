@@ -61,8 +61,13 @@ jobs:
       - name: Commit and push merge (if no conflicts)
         if: steps.try_merge.outputs.conflict == 'false'
         run: |
-          git commit -m "🔀 Merge '${{ github.event.inputs.source_branch }}' into '${{ github.event.inputs.target_branch }}'"
-          git push origin HEAD
+          if git diff --cached --quiet; then
+            echo "✅ Nothing to commit – merge was already applied or no changes needed."
+          else
+            git commit -m "🔀 Merge '${{ github.event.inputs.source_branch }}' into '${{ github.event.inputs.target_branch }}'"
+            git push origin HEAD
+          fi
+
 
       - name: Summary
         run: |
