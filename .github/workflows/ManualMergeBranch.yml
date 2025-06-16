@@ -65,7 +65,7 @@ jobs:
             echo "✅ Nothing to commit – merge was already applied or no changes needed."
           else
             git commit -m "🔀 Merge '${{ github.event.inputs.source_branch }}' into '${{ github.event.inputs.target_branch }}'"
-            git push origin HEAD
+            git push origin HEAD:${{ github.event.inputs.target_branch }}
           fi
 
 
