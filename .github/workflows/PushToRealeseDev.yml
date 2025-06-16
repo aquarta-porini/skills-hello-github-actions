@@ -1,0 +1,29 @@
+name: Auto Merge main -> release-dev
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  merge_to_release_dev:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0  # Needed for git history and merging
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Merge main into release-dev
+        run: |
+          git fetch origin release-dev
+          git checkout release-dev
+          git merge origin/main --no-ff -m "Automated merge from main to release-dev"
+          git push origin release-dev
