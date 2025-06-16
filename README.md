@@ -15,6 +15,7 @@ If you would like to retrace your steps, you can always revisit the exercise.
 ### Craving more? :raising_hand:
 
 Did you enjoy this practical style of learning? There's no better way to learn than building things, right?!
+FUCK OFF!
 
 Let's keep the momentum going! Head over to [GitHub Skills](https://skills.github.com) catalog to find another hands-on exercise. :rocket: 🪄 🐕‍🦺
 
