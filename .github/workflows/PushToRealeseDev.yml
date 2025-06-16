@@ -26,7 +26,7 @@ jobs:
           git fetch origin release-dev
           git checkout release-dev
           git merge origin/main --no-ff -m "Automated merge from main to release-dev"
-          git push origin release-devT
+          git push origin release-dev
           
       - name: Post welcome comment
         run: gh pr comment "$PR_URL" --body "Automated merge from main to release-dev, branch are sync correctly."
