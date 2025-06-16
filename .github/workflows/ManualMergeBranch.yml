@@ -1,0 +1,73 @@
+name: Manual Merge Two Branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: "Branch to merge FROM (es: feature-x)"
+        required: true
+      target_branch:
+        description: "Branch to merge INTO (es: develop)"
+        required: true
+
+jobs:
+  merge_branches:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Prevent merging a branch into itself
+        if: ${{ github.event.inputs.source_branch == github.event.inputs.target_branch }}
+        run: |
+          echo "❌ Source and target branches cannot be the same."
+          exit 1
+
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.target_branch }}
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch source branch
+        run: git fetch origin ${{ github.event.inputs.source_branch }}
+
+      - name: Try merge and detect conflicts
+        id: try_merge
+        continue-on-error: true
+        run: |
+          git merge origin/${{ github.event.inputs.source_branch }} --no-ff --no-commit || true
+          if git ls-files -u | grep -q .; then
+            echo "conflict=true" >> $GITHUB_OUTPUT
+          else
+            echo "conflict=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Show conflict files and differences
+        if: steps.try_merge.outputs.conflict == 'true'
+        run: |
+          echo "❌ Merge conflict detected!"
+          echo "🔍 Conflicting files:"
+          git diff --name-only --diff-filter=U
+          echo ""
+          echo "🧾 Full diff:"
+          git diff
+
+      - name: Commit and push merge (if no conflicts)
+        if: steps.try_merge.outputs.conflict == 'false'
+        run: |
+          git commit -m "🔀 Merge '${{ github.event.inputs.source_branch }}' into '${{ github.event.inputs.target_branch }}'"
+          git push origin HEAD
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.try_merge.outputs.conflict }}" == "true" ]; then
+            echo "⚠️ Merge conflict occurred. Manual resolution needed."
+          else
+            echo "✅ Merge completed successfully."
+          fi
