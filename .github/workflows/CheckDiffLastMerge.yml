@@ -44,6 +44,7 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: main
           fetch-depth: 0
 
@@ -54,9 +55,7 @@ jobs:
 
       - name: Salva modifiche in un file patch
         run: |
-
-          git fetch origin main
-          git checkout main
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
