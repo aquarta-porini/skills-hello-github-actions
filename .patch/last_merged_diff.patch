@@ -515,3 +515,621 @@ index 92535c2..0000000
 -+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
 -+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
 -+          done
+diff --git a/.github/workflows/CheckDiffLastMerge.yml b/.github/workflows/CheckDiffLastMerge.yml
+index a470022..8d106c8 100644
+--- a/.github/workflows/CheckDiffLastMerge.yml
++++ b/.github/workflows/CheckDiffLastMerge.yml
+@@ -6,6 +6,7 @@ on:
+     branches:
+       - '**'  
+ 
++
+ jobs:
+   check-merged-changes:
+     runs-on: ubuntu-latest
+@@ -63,11 +64,15 @@ jobs:
+           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+ 
+           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
+-
++          if [ -n "${{ github.event.pull_request.merged }}" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
++            echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
++            echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
++          fi
++          
+           mkdir -p .patch
+-          git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
++          git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} >> .patch/last_merged_diff.patch
+           echo "Diff salvata in .patch/last_merged_diff.patch"
+ 
+-          git add .patch/last_merged_diff.patch
++          git add .patch/last_merged_diff.patch -f
+           git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
+           git push origin HEAD:main
+\ No newline at end of file
+diff --git a/.patch/last_merged_diff.patch b/.patch/last_merged_diff.patch
+new file mode 100644
+index 0000000..def084b
+--- /dev/null
++++ b/.patch/last_merged_diff.patch
+@@ -0,0 +1,517 @@
++diff --git a/.github/workflows/CheckDiffLastMerge.yml b/.github/workflows/CheckDiffLastMerge.yml
++index a470022..df2d6df 100644
++--- a/.github/workflows/CheckDiffLastMerge.yml
+++++ b/.github/workflows/CheckDiffLastMerge.yml
++@@ -68,6 +68,6 @@ jobs:
++           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
++           echo "Diff salvata in .patch/last_merged_diff.patch"
++ 
++-          git add .patch/last_merged_diff.patch
+++          git add .patch/last_merged_diff.patch -f
++           git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
++           git push origin HEAD:main
++\ No newline at end of file
++diff --git a/.patch/last_merged_diff.patch b/.patch/last_merged_diff.patch
++deleted file mode 100644
++index 6abb088..0000000
++--- a/.patch/last_merged_diff.patch
+++++ /dev/null
++@@ -1,63 +0,0 @@
++-diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
++-new file mode 100644
++-index 0000000..a826f49
++---- /dev/null
++-+++ b/.github/workflows/history.yml
++-@@ -0,0 +1,57 @@
++-+name: Show Action History
++-+
++-+on:
++-+  workflow_dispatch:  # esecuzione manuale
++-+
++-+jobs:
++-+  show-history:
++-+    runs-on: ubuntu-latest
++-+    steps:
++-+      - name: Checkout repository
++-+        uses: actions/checkout@v4
++-+
++-+      - name: Setup GitHub CLI
++-+        uses: cli/cli-action@v2
++-+
++-+      - name: Show recent workflow runs
++-+        env:
++-+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++-+        run: |
++-+          echo "Recent workflow runs for this repository:"
++-+          gh run list --limit 10
++-+          
++-+      - name: Show last run details for each workflow
++-+        env:
++-+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++-+        run: |
++-+          echo "📜 Getting list of workflows..."
++-+          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++-+
++-+          for name in $workflows; do
++-+            echo ""
++-+            echo "🔍 Workflow: $name"
++-+
++-+            # Get the workflow ID from the name
++-+            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++-+
++-+            if [ -z "$id" ]; then
++-+              echo "❌ Unable to find workflow ID for $name"
++-+              continue
++-+            fi
++-+
++-+            # Get latest run details
++-+            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++-+            
++-+            if [ "$latest_run" == "null" ]; then
++-+              echo "⚠️ No runs found for this workflow."
++-+              continue
++-+            fi
++-+
++-+            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++-+            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++-+            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++-+            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++-+            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++-+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++-+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++-+          done
++diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
++new file mode 100644
++index 0000000..a826f49
++--- /dev/null
+++++ b/.github/workflows/history.yml
++@@ -0,0 +1,57 @@
+++name: Show Action History
+++
+++on:
+++  workflow_dispatch:  # esecuzione manuale
+++
+++jobs:
+++  show-history:
+++    runs-on: ubuntu-latest
+++    steps:
+++      - name: Checkout repository
+++        uses: actions/checkout@v4
+++
+++      - name: Setup GitHub CLI
+++        uses: cli/cli-action@v2
+++
+++      - name: Show recent workflow runs
+++        env:
+++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+++        run: |
+++          echo "Recent workflow runs for this repository:"
+++          gh run list --limit 10
+++          
+++      - name: Show last run details for each workflow
+++        env:
+++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+++        run: |
+++          echo "📜 Getting list of workflows..."
+++          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
+++
+++          for name in $workflows; do
+++            echo ""
+++            echo "🔍 Workflow: $name"
+++
+++            # Get the workflow ID from the name
+++            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
+++
+++            if [ -z "$id" ]; then
+++              echo "❌ Unable to find workflow ID for $name"
+++              continue
+++            fi
+++
+++            # Get latest run details
+++            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
+++            
+++            if [ "$latest_run" == "null" ]; then
+++              echo "⚠️ No runs found for this workflow."
+++              continue
+++            fi
+++
+++            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
+++            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
+++            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
+++            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
+++            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
+++            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
+++            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
+++          done
++diff --git a/.github/workflows/CheckDiffLastMerge.yml b/.github/workflows/CheckDiffLastMerge.yml
++index 288db8f..8d106c8 100644
++--- a/.github/workflows/CheckDiffLastMerge.yml
+++++ b/.github/workflows/CheckDiffLastMerge.yml
++@@ -2,11 +2,10 @@ name: Controlla modifiche merge
++ 
++ on:
++   workflow_dispatch:
++-  # push:
++-  #   branches:
++-  #     - '**'  
++-  pull_request:
++-    types: [closed]
+++  push:
+++    branches:
+++      - '**'  
+++
++ 
++ jobs:
++   check-merged-changes:
++@@ -65,9 +64,11 @@ jobs:
++           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
++ 
++           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
++-          echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
++-          echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
++-
+++          if [ -n "${{ github.event.pull_request.merged }}" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+++            echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
+++            echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
+++          fi
+++          
++           mkdir -p .patch
++           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} >> .patch/last_merged_diff.patch
++           echo "Diff salvata in .patch/last_merged_diff.patch"
++diff --git a/.patch/last_merged_diff.patch b/.patch/last_merged_diff.patch
++deleted file mode 100644
++index 92535c2..0000000
++--- a/.patch/last_merged_diff.patch
+++++ /dev/null
++@@ -1,145 +0,0 @@
++-diff --git a/.github/workflows/CheckDiffLastMerge.yml b/.github/workflows/CheckDiffLastMerge.yml
++-index a470022..df2d6df 100644
++---- a/.github/workflows/CheckDiffLastMerge.yml
++-+++ b/.github/workflows/CheckDiffLastMerge.yml
++-@@ -68,6 +68,6 @@ jobs:
++-           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
++-           echo "Diff salvata in .patch/last_merged_diff.patch"
++- 
++--          git add .patch/last_merged_diff.patch
++-+          git add .patch/last_merged_diff.patch -f
++-           git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
++-           git push origin HEAD:main
++-\ No newline at end of file
++-diff --git a/.patch/last_merged_diff.patch b/.patch/last_merged_diff.patch
++-deleted file mode 100644
++-index 6abb088..0000000
++---- a/.patch/last_merged_diff.patch
++-+++ /dev/null
++-@@ -1,63 +0,0 @@
++--diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
++--new file mode 100644
++--index 0000000..a826f49
++----- /dev/null
++--+++ b/.github/workflows/history.yml
++--@@ -0,0 +1,57 @@
++--+name: Show Action History
++--+
++--+on:
++--+  workflow_dispatch:  # esecuzione manuale
++--+
++--+jobs:
++--+  show-history:
++--+    runs-on: ubuntu-latest
++--+    steps:
++--+      - name: Checkout repository
++--+        uses: actions/checkout@v4
++--+
++--+      - name: Setup GitHub CLI
++--+        uses: cli/cli-action@v2
++--+
++--+      - name: Show recent workflow runs
++--+        env:
++--+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++--+        run: |
++--+          echo "Recent workflow runs for this repository:"
++--+          gh run list --limit 10
++--+          
++--+      - name: Show last run details for each workflow
++--+        env:
++--+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++--+        run: |
++--+          echo "📜 Getting list of workflows..."
++--+          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++--+
++--+          for name in $workflows; do
++--+            echo ""
++--+            echo "🔍 Workflow: $name"
++--+
++--+            # Get the workflow ID from the name
++--+            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++--+
++--+            if [ -z "$id" ]; then
++--+              echo "❌ Unable to find workflow ID for $name"
++--+              continue
++--+            fi
++--+
++--+            # Get latest run details
++--+            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++--+            
++--+            if [ "$latest_run" == "null" ]; then
++--+              echo "⚠️ No runs found for this workflow."
++--+              continue
++--+            fi
++--+
++--+            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++--+            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++--+            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++--+            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++--+            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++--+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++--+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++--+          done
++-diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
++-new file mode 100644
++-index 0000000..a826f49
++---- /dev/null
++-+++ b/.github/workflows/history.yml
++-@@ -0,0 +1,57 @@
++-+name: Show Action History
++-+
++-+on:
++-+  workflow_dispatch:  # esecuzione manuale
++-+
++-+jobs:
++-+  show-history:
++-+    runs-on: ubuntu-latest
++-+    steps:
++-+      - name: Checkout repository
++-+        uses: actions/checkout@v4
++-+
++-+      - name: Setup GitHub CLI
++-+        uses: cli/cli-action@v2
++-+
++-+      - name: Show recent workflow runs
++-+        env:
++-+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++-+        run: |
++-+          echo "Recent workflow runs for this repository:"
++-+          gh run list --limit 10
++-+          
++-+      - name: Show last run details for each workflow
++-+        env:
++-+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++-+        run: |
++-+          echo "📜 Getting list of workflows..."
++-+          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++-+
++-+          for name in $workflows; do
++-+            echo ""
++-+            echo "🔍 Workflow: $name"
++-+
++-+            # Get the workflow ID from the name
++-+            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++-+
++-+            if [ -z "$id" ]; then
++-+              echo "❌ Unable to find workflow ID for $name"
++-+              continue
++-+            fi
++-+
++-+            # Get latest run details
++-+            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++-+            
++-+            if [ "$latest_run" == "null" ]; then
++-+              echo "⚠️ No runs found for this workflow."
++-+              continue
++-+            fi
++-+
++-+            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++-+            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++-+            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++-+            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++-+            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++-+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++-+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++-+          done
++diff --git a/.github/workflows/CheckDiffLastMerge.yml b/.github/workflows/CheckDiffLastMerge.yml
++index 288db8f..8d106c8 100644
++--- a/.github/workflows/CheckDiffLastMerge.yml
+++++ b/.github/workflows/CheckDiffLastMerge.yml
++@@ -2,11 +2,10 @@ name: Controlla modifiche merge
++ 
++ on:
++   workflow_dispatch:
++-  # push:
++-  #   branches:
++-  #     - '**'  
++-  pull_request:
++-    types: [closed]
+++  push:
+++    branches:
+++      - '**'  
+++
++ 
++ jobs:
++   check-merged-changes:
++@@ -65,9 +64,11 @@ jobs:
++           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
++ 
++           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
++-          echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
++-          echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
++-
+++          if [ -n "${{ github.event.pull_request.merged }}" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+++            echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
+++            echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
+++          fi
+++          
++           mkdir -p .patch
++           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} >> .patch/last_merged_diff.patch
++           echo "Diff salvata in .patch/last_merged_diff.patch"
++diff --git a/.patch/last_merged_diff.patch b/.patch/last_merged_diff.patch
++deleted file mode 100644
++index 92535c2..0000000
++--- a/.patch/last_merged_diff.patch
+++++ /dev/null
++@@ -1,145 +0,0 @@
++-diff --git a/.github/workflows/CheckDiffLastMerge.yml b/.github/workflows/CheckDiffLastMerge.yml
++-index a470022..df2d6df 100644
++---- a/.github/workflows/CheckDiffLastMerge.yml
++-+++ b/.github/workflows/CheckDiffLastMerge.yml
++-@@ -68,6 +68,6 @@ jobs:
++-           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
++-           echo "Diff salvata in .patch/last_merged_diff.patch"
++- 
++--          git add .patch/last_merged_diff.patch
++-+          git add .patch/last_merged_diff.patch -f
++-           git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
++-           git push origin HEAD:main
++-\ No newline at end of file
++-diff --git a/.patch/last_merged_diff.patch b/.patch/last_merged_diff.patch
++-deleted file mode 100644
++-index 6abb088..0000000
++---- a/.patch/last_merged_diff.patch
++-+++ /dev/null
++-@@ -1,63 +0,0 @@
++--diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
++--new file mode 100644
++--index 0000000..a826f49
++----- /dev/null
++--+++ b/.github/workflows/history.yml
++--@@ -0,0 +1,57 @@
++--+name: Show Action History
++--+
++--+on:
++--+  workflow_dispatch:  # esecuzione manuale
++--+
++--+jobs:
++--+  show-history:
++--+    runs-on: ubuntu-latest
++--+    steps:
++--+      - name: Checkout repository
++--+        uses: actions/checkout@v4
++--+
++--+      - name: Setup GitHub CLI
++--+        uses: cli/cli-action@v2
++--+
++--+      - name: Show recent workflow runs
++--+        env:
++--+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++--+        run: |
++--+          echo "Recent workflow runs for this repository:"
++--+          gh run list --limit 10
++--+          
++--+      - name: Show last run details for each workflow
++--+        env:
++--+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++--+        run: |
++--+          echo "📜 Getting list of workflows..."
++--+          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++--+
++--+          for name in $workflows; do
++--+            echo ""
++--+            echo "🔍 Workflow: $name"
++--+
++--+            # Get the workflow ID from the name
++--+            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++--+
++--+            if [ -z "$id" ]; then
++--+              echo "❌ Unable to find workflow ID for $name"
++--+              continue
++--+            fi
++--+
++--+            # Get latest run details
++--+            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++--+            
++--+            if [ "$latest_run" == "null" ]; then
++--+              echo "⚠️ No runs found for this workflow."
++--+              continue
++--+            fi
++--+
++--+            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++--+            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++--+            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++--+            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++--+            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++--+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++--+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++--+          done
++-diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
++-new file mode 100644
++-index 0000000..a826f49
++---- /dev/null
++-+++ b/.github/workflows/history.yml
++-@@ -0,0 +1,57 @@
++-+name: Show Action History
++-+
++-+on:
++-+  workflow_dispatch:  # esecuzione manuale
++-+
++-+jobs:
++-+  show-history:
++-+    runs-on: ubuntu-latest
++-+    steps:
++-+      - name: Checkout repository
++-+        uses: actions/checkout@v4
++-+
++-+      - name: Setup GitHub CLI
++-+        uses: cli/cli-action@v2
++-+
++-+      - name: Show recent workflow runs
++-+        env:
++-+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++-+        run: |
++-+          echo "Recent workflow runs for this repository:"
++-+          gh run list --limit 10
++-+          
++-+      - name: Show last run details for each workflow
++-+        env:
++-+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++-+        run: |
++-+          echo "📜 Getting list of workflows..."
++-+          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++-+
++-+          for name in $workflows; do
++-+            echo ""
++-+            echo "🔍 Workflow: $name"
++-+
++-+            # Get the workflow ID from the name
++-+            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++-+
++-+            if [ -z "$id" ]; then
++-+              echo "❌ Unable to find workflow ID for $name"
++-+              continue
++-+            fi
++-+
++-+            # Get latest run details
++-+            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++-+            
++-+            if [ "$latest_run" == "null" ]; then
++-+              echo "⚠️ No runs found for this workflow."
++-+              continue
++-+            fi
++-+
++-+            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++-+            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++-+            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++-+            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++-+            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++-+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++-+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++-+          done
+diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
+new file mode 100644
+index 0000000..a826f49
+--- /dev/null
++++ b/.github/workflows/history.yml
+@@ -0,0 +1,57 @@
++name: Show Action History
++
++on:
++  workflow_dispatch:  # esecuzione manuale
++
++jobs:
++  show-history:
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout repository
++        uses: actions/checkout@v4
++
++      - name: Setup GitHub CLI
++        uses: cli/cli-action@v2
++
++      - name: Show recent workflow runs
++        env:
++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++        run: |
++          echo "Recent workflow runs for this repository:"
++          gh run list --limit 10
++          
++      - name: Show last run details for each workflow
++        env:
++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++        run: |
++          echo "📜 Getting list of workflows..."
++          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++
++          for name in $workflows; do
++            echo ""
++            echo "🔍 Workflow: $name"
++
++            # Get the workflow ID from the name
++            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++
++            if [ -z "$id" ]; then
++              echo "❌ Unable to find workflow ID for $name"
++              continue
++            fi
++
++            # Get latest run details
++            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++            
++            if [ "$latest_run" == "null" ]; then
++              echo "⚠️ No runs found for this workflow."
++              continue
++            fi
++
++            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++          done
