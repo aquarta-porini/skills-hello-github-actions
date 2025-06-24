@@ -1,0 +1,48 @@
+name: Controlla modifiche merge
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-merged-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Trova ultimo commit di tipo merge
+        id: find_merge
+        run: |
+          last_merge_commit=$(git log --merges -n 1 --pretty=format:"%H")
+          echo "Ultimo commit di merge: $last_merge_commit"
+          echo "merge_commit=$last_merge_commit" >> $GITHUB_OUTPUT
+
+      - name: Ottieni i due genitori del commit di merge
+        id: merge_parents
+        run: |
+          parents=($(git rev-list --parents -n 1 ${{ steps.find_merge.outputs.merge_commit }}))
+          echo "Parent 1: ${parents[1]}"
+          echo "Parent 2: ${parents[2]}"
+          echo "base_commit=${parents[1]}" >> $GITHUB_OUTPUT
+          echo "merged_branch_commit=${parents[2]}" >> $GITHUB_OUTPUT
+
+      - name: Mostra file modificati tra i due rami del merge
+        run: |
+          echo "Differenze introdotte nel merge:"
+          git diff --name-status ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }}
+
+      - name: Loop su file modificati
+        run: |
+          echo "Analisi file modificati:"
+          for file in $(git diff --name-only ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }}); do
+            echo "➤ File modificato: $file"
+          done
+
+      - name: Salva modifiche in un file patch
+        run: |
+          echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
+          git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
+          echo "Diff salvata in .patch/last_merged_diff.patch"
