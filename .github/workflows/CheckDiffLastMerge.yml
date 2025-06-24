@@ -52,8 +52,3 @@ jobs:
             git diff --unified=3 ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d'
             echo "--------------------------------------------"
           done
-        
-
-
-
-          
