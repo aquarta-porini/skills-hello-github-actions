@@ -9,7 +9,12 @@ on:
   push:
     branches:
       - main
-
+      
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 jobs:
   merge_to_release_dev:
     runs-on: ubuntu-latest
