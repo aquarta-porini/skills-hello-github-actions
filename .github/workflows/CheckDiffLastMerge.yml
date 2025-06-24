@@ -34,9 +34,15 @@ jobs:
           echo "Differenze introdotte nel merge:"
           git diff --name-status ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }}
 
-      - name: (Opzionale) Loop su file modificati
+      - name: Loop su file modificati
         run: |
           echo "Analisi file modificati:"
           for file in $(git diff --name-only ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }}); do
             echo "➤ File modificato: $file"
           done
+
+      - name: Salva modifiche in un file patch
+        run: |
+          echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
+          git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
+          echo "Diff salvata in .patch/last_merged_diff.patch"
