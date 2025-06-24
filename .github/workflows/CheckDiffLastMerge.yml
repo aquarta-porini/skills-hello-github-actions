@@ -41,6 +41,10 @@ jobs:
             echo "➤ File modificato: $file"
           done
 
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+
       - name: Salva modifiche in un file patch
         run: |
           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
@@ -51,5 +55,5 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           git add .patch/last_merged_diff.patch
-          git commit -m "Aggiornato patch con diff fra commit base e merge"
+          git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
           git push origin main
