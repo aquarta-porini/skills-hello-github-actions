@@ -68,7 +68,6 @@ jobs:
             git push origin HEAD:${{ github.event.inputs.target_branch }}
           fi
 
-
       - name: Summary
         run: |
           if [ "${{ steps.try_merge.outputs.conflict }}" == "true" ]; then
