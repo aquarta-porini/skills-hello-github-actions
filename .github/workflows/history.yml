@@ -22,31 +22,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "📜 Getting list of workflows..."
-          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
+          workflows=$(gh run list --limit 10 --json name,databaseId )
 
-          for name in $workflows; do
-            echo ""
-            echo "🔍 Workflow: $name"
-
-            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
-
-            if [ -z "$id" ]; then
-              echo "❌ Unable to find workflow ID for $name"
-              continue
-            fi
-
-            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
-
-            if [ "$latest_run" == "null" ]; then
-              echo "⚠️ No runs found for this workflow."
-              continue
-            fi
-
-            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
-            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
-            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
-            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
-            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
-            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
-            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
+          for name,id in $workflows; do
+            name=$(echo "$name" | jq -r '.name')
+            id=$(echo "$id" | jq -r '.databaseId')
+            echo "----------------------------------------"
+            echo "🔍 Workflow: $name (ID: $id)
+            echo "----------------------------------------
+            echo "Fetching latest run details for workflow: $name"
+            echo "----------------------------------------"
+            output=$(gh run view "$id" --verbose)
+            echo "$output"  
           done
