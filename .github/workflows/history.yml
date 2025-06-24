@@ -22,16 +22,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "📜 Getting list of workflows..."
-          workflows=$(gh run list --limit 10 --json name,databaseId )
+          workflows=$(gh run list --limit 10 --json name,databaseId)
 
-          for name,id in $workflows; do
-            name=$(echo "$name" | jq -r '.name')
-            id=$(echo "$id" | jq -r '.databaseId')
+          echo "$workflows" | jq -c '.[]' | while read -r workflow; do
+            name=$(echo "$workflow" | jq -r '.name')
+            id=$(echo "$workflow" | jq -r '.databaseId')
+
             echo "----------------------------------------"
-            echo "🔍 Workflow: $name (ID: $id)
-            echo "----------------------------------------
+            echo "🔍 Workflow: $name (ID: $id)"
+            echo "----------------------------------------"
             echo "Fetching latest run details for workflow: $name"
             echo "----------------------------------------"
-            output=$(gh run view "$id" --verbose)
-            echo "$output"  
+            gh run view "$id" --verbose
           done
+
