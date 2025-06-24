@@ -76,3 +76,4 @@ jobs:
           git add .patch/last_merged_diff.patch -f
           git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
           git push origin HEAD:main
+          
