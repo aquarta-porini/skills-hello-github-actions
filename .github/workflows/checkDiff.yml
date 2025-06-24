@@ -1,7 +1,7 @@
-name: Controllo modifiche ultimo merge
+name: Controlla modifiche merge
 
 on:
-  workflow_dispatch:  # permette il trigger manuale da GitHub UI
+  workflow_dispatch:
 
 jobs:
   check-merged-changes:
@@ -11,24 +11,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # necessario per accedere alla cronologia dei merge
+          fetch-depth: 0
 
-      - name: Trova ultimo merge commit
+      - name: Trova ultimo commit di tipo merge
+        id: find_merge
         run: |
-          last_merge=$(git log --merges -n 1 --pretty=format:"%H")
-          echo "Ultimo merge commit: $last_merge"
-          echo "last_merge_commit=$last_merge" >> $GITHUB_ENV
+          last_merge_commit=$(git log --merges -n 1 --pretty=format:"%H")
+          echo "Ultimo commit di merge: $last_merge_commit"
+          echo "merge_commit=$last_merge_commit" >> $GITHUB_OUTPUT
 
-      - name: Lista file modificati nell'ultimo merge
+      - name: Ottieni i due genitori del commit di merge
+        id: merge_parents
         run: |
-          echo "File modificati:"
-          git show --name-only ${{ env.last_merge_commit }}
+          parents=($(git rev-list --parents -n 1 ${{ steps.find_merge.outputs.merge_commit }}))
+          echo "Parent 1: ${parents[1]}"
+          echo "Parent 2: ${parents[2]}"
+          echo "base_commit=${parents[1]}" >> $GITHUB_OUTPUT
+          echo "merged_branch_commit=${parents[2]}" >> $GITHUB_OUTPUT
 
-      - name: Loop sui file modificati
+      - name: Mostra file modificati tra i due rami del merge
+        run: |
+          echo "Differenze introdotte nel merge:"
+          git diff --name-status ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }}
+
+      - name: (Opzionale) Loop su file modificati
         run: |
           echo "Analisi file modificati:"
-          for file in $(git diff-tree --no-commit-id --name-only -r ${{ env.last_merge_commit }}); do
-            echo "➤ $file"
-            # qui puoi aggiungere logica su file specifici, ad esempio:
-            # if [[ $file == src/* ]]; then echo "File nel codice sorgente modificato!"; fi
+          for file in $(git diff --name-only ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }}); do
+            echo "➤ File modificato: $file"
           done
