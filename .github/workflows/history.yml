@@ -34,5 +34,5 @@ jobs:
             echo "Fetching latest run details for workflow: $name"
             echo "----------------------------------------"
             gh run view "$id" --verbose
-          done
+          done      
   
