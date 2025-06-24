@@ -2,11 +2,10 @@ name: Controlla modifiche merge
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - '**'  
-  pull_request:
-    types: [closed]
+  push:
+    branches:
+      - '**'  
+
 
 jobs:
   check-merged-changes:
@@ -65,9 +64,11 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
-          echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
-          echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
-
+          if [ -n "${{ github.event.pull_request.merged }}" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.txt
+            echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.txt
+          fi
+          
           mkdir -p .patch
           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} >> .patch/last_merged_diff.patch
           echo "Diff salvata in .patch/last_merged_diff.patch"
