@@ -38,3 +38,4 @@ Thumbs.db
 
 
 .patch
+.patch/last_merged_diff.patch
