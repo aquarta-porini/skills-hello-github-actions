@@ -2,6 +2,9 @@ name: Controlla modifiche merge
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - '**'  
 
 jobs:
   check-merged-changes:
