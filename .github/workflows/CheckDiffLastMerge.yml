@@ -58,9 +58,11 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
           echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
+
+          mkdir -p .patch
           git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
           echo "Diff salvata in .patch/last_merged_diff.patch"
-          
+
           git add .patch/last_merged_diff.patch
           git diff --cached --quiet || git commit -m "Aggiornato patch con diff fra commit base e merge"
           git push origin HEAD:main
