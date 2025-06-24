@@ -35,5 +35,4 @@ jobs:
             echo "----------------------------------------"
             gh run view "$id" --verbose
           done
-
-        
+  
