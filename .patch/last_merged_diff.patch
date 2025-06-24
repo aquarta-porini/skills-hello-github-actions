@@ -1070,3 +1070,66 @@ index 0000000..def084b
 +-+            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
 +-+            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
 +-+          done
+diff --git a/.github/workflows/history.yml b/.github/workflows/history.yml
+new file mode 100644
+index 0000000..a826f49
+--- /dev/null
++++ b/.github/workflows/history.yml
+@@ -0,0 +1,57 @@
++name: Show Action History
++
++on:
++  workflow_dispatch:  # esecuzione manuale
++
++jobs:
++  show-history:
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout repository
++        uses: actions/checkout@v4
++
++      - name: Setup GitHub CLI
++        uses: cli/cli-action@v2
++
++      - name: Show recent workflow runs
++        env:
++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++        run: |
++          echo "Recent workflow runs for this repository:"
++          gh run list --limit 10
++          
++      - name: Show last run details for each workflow
++        env:
++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++        run: |
++          echo "📜 Getting list of workflows..."
++          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].name')
++
++          for name in $workflows; do
++            echo ""
++            echo "🔍 Workflow: $name"
++
++            # Get the workflow ID from the name
++            id=$(gh api repos/${{ github.repository }}/actions/workflows --jq ".workflows[] | select(.name==\"$name\") | .id")
++
++            if [ -z "$id" ]; then
++              echo "❌ Unable to find workflow ID for $name"
++              continue
++            fi
++
++            # Get latest run details
++            latest_run=$(gh api repos/${{ github.repository }}/actions/workflows/$id/runs?per_page=1 --jq '.workflow_runs[0]')
++            
++            if [ "$latest_run" == "null" ]; then
++              echo "⚠️ No runs found for this workflow."
++              continue
++            fi
++
++            echo "📄 ID:     $(echo "$latest_run" | jq -r '.id')"
++            echo "📦 Name:   $(echo "$latest_run" | jq -r '.name')"
++            echo "🔗 URL:    $(echo "$latest_run" | jq -r '.html_url')"
++            echo "🧪 Status: $(echo "$latest_run" | jq -r '.status')"
++            echo "✅ Result: $(echo "$latest_run" | jq -r '.conclusion')"
++            echo "🌿 Branch: $(echo "$latest_run" | jq -r '.head_branch')"
++            echo "🕒 Created: $(echo "$latest_run" | jq -r '.created_at')"
++          done
