@@ -57,9 +57,17 @@ jobs:
 
       - name: Salva modifiche in un file patch
         run: |
-            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          mkdir -p .patch
 
-            echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
+          echo "Salvo diff tra ${{ steps.merge_parents.outputs.base_commit }} e ${{ steps.merge_parents.outputs.merged_branch_commit }}"
+          if [ -n "${{ github.event.pull_request.merged }}" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            echo "Branch origine: ${{ github.event.pull_request.head.ref }}" > .patch/last_merged_branches.patch
+            echo "Branch destinazione: ${{ github.event.pull_request.base.ref }}" >> .patch/last_merged_branches.patch
+          fi
+          
+          git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} >> .patch/last_merged_diff.patch
+          echo "Diff salvata in .patch/last_merged_diff.patch"
 
             mkdir -p .patch
             git diff ${{ steps.merge_parents.outputs.base_commit }} ${{ steps.merge_parents.outputs.merged_branch_commit }} > .patch/last_merged_diff.patch
