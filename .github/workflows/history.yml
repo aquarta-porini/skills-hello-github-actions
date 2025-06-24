@@ -36,3 +36,22 @@ jobs:
             gh run view "$id" --verbose
           done
 
+      - name: Show last run details for each workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          runs=$(gh run list --limit 10 --json name,databaseId,status,conclusion)
+
+          echo "$runs" | jq -c '.[] | select(.conclusion=="failure")' | while read -r run; do
+            name=$(echo "$run" | jq -r '.name')
+            id=$(echo "$run" | jq -r '.databaseId')
+
+            echo "----------------------------------------"
+            echo "🛑 Failed workflow: $name (ID: $id)"
+            echo "----------------------------------------"
+            echo "Fetching latest run details for workflow: $name"
+            echo "----------------------------------------"
+            echo "📖 Showing logs..."
+            gh run view "$id" --verbose --log
+            echo "----------------------------------------"
+          done
