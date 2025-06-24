@@ -22,7 +22,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "📜 Getting latest runs grouped by workflow..."
-          gh run list --limit 20 --json id,workflowName,conclusion,headBranch,createdAt \
+          gh run list --limit 20 \
           | jq -c '.[]' \
           | while read -r run; do
               id=$(echo "$run" | jq -r '.id')
