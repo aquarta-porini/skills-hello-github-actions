@@ -58,7 +58,7 @@ jobs:
 
                 COMMENT=$'📄 File modificato: '"$file"$'<br>'
                 COMMENT+=$'--------------------------------------------<br>'
-                COMMENT+=$'\`\`\`diff<br>'"$DIFF"$'<br>\`\`\`<br>'
+                COMMENT+=$'<br> \`\`\`$DIFF\`\`\` <br>'
                 COMMENT+=$'--------------------------------------------<br>'
 
                 gh pr comment "$PR_URL" --body "$COMMENT"
