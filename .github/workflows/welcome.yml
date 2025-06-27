@@ -58,11 +58,11 @@ jobs:
 
                 COMMENT=$'📄 File modificato: '"$file"$'<br>'
                 COMMENT+=$'--------------------------------------------<br>'
-                COMMENT+=$'\`\`\`$DIFF\`\`\`'
+                COMMENT+=$'\\`\\`\\`$DIFF\\`\\`\\`'
                 COMMENT+=$'<br>--------------------------------------------<br>'
 
                 gh pr comment "$PR_URL" --body "$COMMENT"
-                gh pr comment "$PR_URL" --body "\`\`\`$DIFF\`\`\`"
+                gh pr comment "$PR_URL" --body "\`\`\`diff<br>$DIFF\`\`\`"
               done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
