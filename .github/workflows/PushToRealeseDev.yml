@@ -37,6 +37,7 @@ jobs:
         run: |
           git fetch origin release-dev
           git checkout release-dev
+          git pull
           git merge origin/main --no-ff -m "🤖 Auto-merge from main to release-dev"
           git push origin HEAD:release-dev
 
