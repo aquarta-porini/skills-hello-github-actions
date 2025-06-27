@@ -46,15 +46,23 @@ jobs:
 
       - name: Mostra dettagli delle modifiche per ogni file
         run: |
-          echo "📄 Analisi dettagliata dei file modificati:"
-          for file in $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}); do
-            str1= "➤ File modificato: $file <br>"
-            Space="--------------------------------------------"
-            DIFF=$(git diff --unified=3 ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d')
-            
-            COMMENT="$str1 <br> $Space <br> $DIFF <br> $Space <br>"
-            gh pr comment "$PR_URL" --body "$COMMENT"
-          done
+              echo "📄 Analisi dettagliata dei file modificati:"
+
+              BASE_SHA=${{ github.event.pull_request.base.sha }}
+              HEAD_SHA=${{ github.event.pull_request.head.sha }}
+
+              for file in $(git diff --name-only "$BASE_SHA" "$HEAD_SHA"); do
+                echo "➤ File modificato: $file"
+
+                DIFF=$(git diff --unified=3 "$BASE_SHA" "$HEAD_SHA" -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d')
+
+                COMMENT=$'📄 File modificato: '"$file"$'<br>'
+                COMMENT+=$'--------------------------------------------<br>'
+                COMMENT+=$'```'"$DIFF"$'```<br>'
+                COMMENT+=$'--------------------------------------------<br>'
+
+                gh pr comment "$PR_URL" --body "$COMMENT"
+              done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
