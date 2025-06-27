@@ -48,10 +48,10 @@ jobs:
         run: |
           echo "📄 Analisi dettagliata dei file modificati:"
           for file in $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}); do
-            gh pr comment "$PR_URL" --body "\n➤ File modificato: $file"
-            gh pr comment "$PR_URL" --body "--------------------------------------------"
-            git diff --unified=3 ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d'
-            gh pr comment "$PR_URL" --body "--------------------------------------------"
+            str1= "➤ File modificato: $file <br>"
+            Space="--------------------------------------------"
+            DIFF=$(git diff --unified=3 ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d')
+            gh pr comment "$PR_URL" --body "$str1 <br> $Space <br> $DIFF <br> $Space <br>"
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
