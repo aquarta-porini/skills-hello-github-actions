@@ -57,9 +57,9 @@ jobs:
                 DIFF=$(git diff --unified=3 "$BASE_SHA" "$HEAD_SHA" -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d')
 
                 COMMENT=$'📄 File modificato: '
-                COMMENT+="<details><br><summary><strong>$file</strong></summary><br><br>"
-                COMMENT+="\`\`\`diff<br>$DIFF<br>\`\`\`<br>"
-                COMMENT+="</details><br><br>"
+                COMMENT+="<details><summary><strong>$file</strong></summary>"
+                COMMENT+="\`\`\`$DIFF\`\`\`"
+                COMMENT+="</details>"
 
                 gh pr comment "$PR_URL" --body "$COMMENT"
               done
