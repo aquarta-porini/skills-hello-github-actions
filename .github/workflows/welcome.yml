@@ -39,15 +39,20 @@ jobs:
           FILES=$(gh pr view "$PR_URL" --json files --jq '.files[].path')
           echo "📦 File modificati nella PR:"
           echo "$FILES"
-          gh pr comment "$PR_URL" --body "📄 File modificati:\n\`\`\`\n$FILES\n\`\`\`"
+          gh pr comment "$PR_URL" --body "📄 File modificati:<br> \`\`\`$FILES\`\`\` <br>"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
 
-      - name: Show diff of files between base and head
+      - name: Mostra dettagli delle modifiche per ogni file
         run: |
-          echo "Git diff:"
-          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+          echo "📄 Analisi dettagliata dei file modificati:"
+          for file in $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}); do
+            gh pr comment "$PR_URL" --body "\n➤ File modificato: $file"
+            gh pr comment "$PR_URL" --body "--------------------------------------------"
+            git diff --unified=3 ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d'
+            gh pr comment "$PR_URL" --body "--------------------------------------------"
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
