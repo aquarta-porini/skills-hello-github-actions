@@ -13,3 +13,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
+
+  check-merged-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - run: gh pr comment "$PR_URL" --body "${{ github.event.pull_request.changed_files }} files changed in this PR. Please review them carefully."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+
+      - run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+
+      - run: git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+      
+      - run: |
+          FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path')
+          echo "📦 File modificati nella PR:"
+          echo "$FILES"
+
+          gh pr comment ${{ github.event.pull_request.html_url }} --body "📄 File modificati:\n\`\`\`\n$FILES\n\`\`\`"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
