@@ -9,7 +9,7 @@ jobs:
     name: Post welcome comment
     runs-on: ubuntu-latest
     steps:
-      - run: gh pr comment "$PR_URL" --body "Welcome to the repository!"
+      - run: gh pr comment "$PR_URL" --body "Benvenuto nella Pull Request! 🎉"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
@@ -23,7 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
 
-      - run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path'
+      - run: gh pr view "$PR_URL"  --json files --jq '.files[].path'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
@@ -34,10 +34,10 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
       
       - run: |
-          FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path')
+          FILES=$(gh pr view "$PR_URL" --json files --jq '.files[].path')
           echo "📦 File modificati nella PR:"
           echo "$FILES"
 
-          gh pr comment ${{ github.event.pull_request.html_url }} --body "📄 File modificati:\n\`\`\`\n$FILES\n\`\`\`"
+          gh pr comment "$PR_URL" --body "📄 File modificati:\n\`\`\`\n$FILES\n\`\`\`"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
