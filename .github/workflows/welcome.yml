@@ -60,7 +60,7 @@ jobs:
                 COMMENT+=$'--------------------------------------------<br>'
             
 
-                gh pr comment "$PR_URL" --body "$COMMENT \`\`\`diff<br>$DIFF\`\`\`<br>--------------------------------------------<br>"
+                gh pr comment "$PR_URL" --body "$COMMENT \`\`\`$DIFF\`\`\` <br>--------------------------------------------<br>"
               done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
