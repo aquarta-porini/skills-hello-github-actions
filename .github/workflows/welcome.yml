@@ -1,9 +1,12 @@
-name: Post welcome comment
+name: Post welcome comment and show PR changes
+
 on:
   pull_request:
     types: [opened]
+
 permissions:
   pull-requests: write
+
 jobs:
   welcome:
     name: Post welcome comment
@@ -15,29 +18,36 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
 
   check-merged-changes:
-    name: Check merged changes
+    name: Check PR changed files
     runs-on: ubuntu-latest
+
     steps:
-      - run: gh pr comment "$PR_URL" --body "${{ github.event.pull_request.changed_files }} files changed in this PR. Please review them carefully."
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Post number of changed files
+        run: |
+          gh pr comment "$PR_URL" --body "${{ github.event.pull_request.changed_files }} files changed in this PR. Please review them carefully."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
 
-      - run: gh pr view "$PR_URL"  --json files --jq '.files[].path'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-
-      - run: git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-      
-      - run: |
+      - name: Comment with list of modified files
+        run: |
           FILES=$(gh pr view "$PR_URL" --json files --jq '.files[].path')
           echo "📦 File modificati nella PR:"
           echo "$FILES"
-
           gh pr comment "$PR_URL" --body "📄 File modificati:\n\`\`\`\n$FILES\n\`\`\`"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+
+      - name: Show diff of files between base and head
+        run: |
+          echo "Git diff:"
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
