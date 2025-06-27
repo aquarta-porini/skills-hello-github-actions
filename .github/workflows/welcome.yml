@@ -51,7 +51,9 @@ jobs:
             str1= "➤ File modificato: $file <br>"
             Space="--------------------------------------------"
             DIFF=$(git diff --unified=3 ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$file" | sed '/^diff /d;/^index /d;/^--- /d;/^\+\+\+ /d')
-            gh pr comment "$PR_URL" --body "$str1 <br> $Space <br> $DIFF <br> $Space <br>"
+            
+            COMMENT="$str1 <br> $Space <br> $DIFF <br> $Space <br>"
+            gh pr comment "$PR_URL" --body "$COMMENT"
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
